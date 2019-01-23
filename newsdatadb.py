@@ -38,7 +38,8 @@ article_results = c.fetchall()
 
 # For loop to have results print in plain text
 
-print('Here are your top three articles')
+print(' ')
+print('Here are the top three articles')
 print('--------------------------------')
 print(' ')
 
@@ -47,19 +48,19 @@ for x in article_results:
 
 # Who are the most popular article authors of all
 # time (author name, number of views)
-print(' ')
 
-print('Here are your top three authors')
+print(' ')
+print('Here are the top three authors')
 print('--------------------------------')
 print(' ')
 
 top_author_query = '''
-    select authors.name, views
+    select authors.name, sum(adjusted_logs.views) as TotalViews
     from articles
     join adjusted_logs on (articles.slug = adjusted_logs.FixPath)
     join authors on (authors.id = articles.author)
-    group by authors.name, views
-    order by views desc
+    group by authors.name
+    order by TotalViews desc
     limit 3
     '''
 c.execute(top_author_query)
@@ -70,31 +71,32 @@ for x in author_results:
     print('{} - {} views.'.format(x[0], x[1]))
 
 # On which days did more than 1% of requests lead to errors (date, % of errors)
-print(' ')
 
 error_query = '''
-    select FailureRate.FailureDate,
-    ROUND(((FailureRate.NumFailure::decimal / TotalAccess.TotalCount::decimal) * 100), 2)
+    select FailRate.FailDate,
+    ROUND(((FailRate.NumFail::decimal / TAccess.TCount::decimal) * 100), 2)
     from (
-        select time::date as Date, count(status) as TotalCount
+        select time::date as Date, count(status) as TCount
         from log
         group by Date
-    ) as TotalAccess join (
-        select time::date as FailureDate, status, count(status) as NumFailure
+    ) as TAccess join (
+        select time::date as FailDate, status, count(status) as NumFail
         from log
         where status = '404 NOT FOUND'
-        group by FailureDate, status
-    ) as FailureRate on TotalAccess.Date = FailureRate.FailureDate
-    where ((FailureRate.NumFailure::decimal / TotalAccess.TotalCount::decimal) * 100) > 1
-    group by FailureRate.FailureDate, FailureRate.NumFailure, TotalAccess.TotalCount
+        group by FailDate, status
+    ) as FailRate on TAccess.Date = FailRate.FailDate
+    where ((FailRate.NumFail::decimal / TAccess.TCount::decimal) * 100) > 1
+    group by FailRate.FailDate, FailRate.NumFail, TAccess.TCount
     '''
 
 c.execute(error_query)
 error_results = c.fetchall()
 
-print('Here are the days where there were more that 1% errors')
-print('-----------------------------------------------------r')
 print(' ')
+print('Here are the days where there were more that 1% errors')
+print('-----------------------------------------------------')
+print(' ')
+
 for x in error_results:
     print('{} - {}% errors '.format(x[0], x[1]))
 
