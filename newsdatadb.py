@@ -82,8 +82,8 @@ print('Here are the days where there were more that 1% errors')
 print('-----------------------------------------------------')
 print(' ')
 
-for x in error_results:
-    print('{} - {}% errors '.format(x[0], x[1]))
+for date, percentage in error_results:
+    print('{} - {}% errors '.format(date, percentage))
 
 
 db.close()

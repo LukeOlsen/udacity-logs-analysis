@@ -1,7 +1,20 @@
-"Bad things gone, say good people" - 170098 views.
-"Bears love berries, alleges bear" - 253801 views.
+ 
+Here are the top three articles
+--------------------------------
+ 
 "Candidate is jerk, alleges rival" - 338647 views.
-Ursula La Multa - 253801 views.
-Rudolf von Treppenwitz - 338647 views.
+"Bears love berries, alleges bear" - 253801 views.
+"Bad things gone, say good people" - 170098 views.
+ 
+Here are the top three authors
+--------------------------------
+ 
+Ursula La Multa - 507594 views.
+Rudolf von Treppenwitz - 423457 views.
 Anonymous Contributor - 170098 views.
-07-17-2016 - 2.3% errors 
+ 
+Here are the days where there were more that 1% errors
+-----------------------------------------------------
+ 
+2016-07-17 - 2.26% errors 
+
