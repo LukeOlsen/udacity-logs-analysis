@@ -43,8 +43,8 @@ print('Here are the top three articles')
 print('--------------------------------')
 print(' ')
 
-for x in article_results:
-    print('"{}" - {} views.'.format(x[0], x[1]))
+for title, views in article_results:
+    print('"{}" - {} views.'.format(title, views))
 
 # Who are the most popular article authors of all
 # time (author name, number of views)
@@ -67,8 +67,8 @@ c.execute(top_author_query)
 author_results = c.fetchall()
 
 
-for x in author_results:
-    print('{} - {} views.'.format(x[0], x[1]))
+for author, views in author_results:
+    print('{} - {} views.'.format(author, views))
 
 # On which days did more than 1% of requests lead to errors (date, % of errors)
 
