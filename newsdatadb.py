@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import psycopg2
 
 # Connect to news database
@@ -11,13 +11,12 @@ c = db.cursor()
 # Creating view that will be used in the
 # 3 most popular articles and authors queries
 
-create_view = '''create view topthree as 
+create_view = '''create view adjusted_logs as
     select RIGHT(path, length(path) - 9) as FixPath, count(path) as views
     from log
     where path <> '/'
     group by FixPath
     order by views desc
-    limit 3
     '''
 
 # Creating the view in the database
@@ -28,7 +27,10 @@ c.execute(create_view)
 
 top_article_query = '''
     select title, views
-    from articles join topthree on (articles.slug = topthree.FixPath)
+    from articles join adjusted_logs on (articles.slug = adjusted_logs.FixPath)
+    group by title, views
+    order by views desc
+    limit 3
     '''
 
 c.execute(top_article_query)
@@ -36,15 +38,29 @@ article_results = c.fetchall()
 
 # For loop to have results print in plain text
 
+print('Here are your top three articles')
+print('--------------------------------')
+print(' ')
+
 for x in article_results:
     print('"{}" - {} views.'.format(x[0], x[1]))
 
+# Who are the most popular article authors of all
+# time (author name, number of views)
+print(' ')
 
-# Who are the most popular article authors of all time (author name, number of views)
+print('Here are your top three authors')
+print('--------------------------------')
+print(' ')
 
 top_author_query = '''
     select authors.name, views
-    from articles join topthree on (articles.slug = topthree.FixPath) join authors on (authors.id = articles.author)
+    from articles
+    join adjusted_logs on (articles.slug = adjusted_logs.FixPath)
+    join authors on (authors.id = articles.author)
+    group by authors.name, views
+    order by views desc
+    limit 3
     '''
 c.execute(top_author_query)
 author_results = c.fetchall()
@@ -54,26 +70,31 @@ for x in author_results:
     print('{} - {} views.'.format(x[0], x[1]))
 
 # On which days did more than 1% of requests lead to errors (date, % of errors)
+print(' ')
 
 error_query = '''
-    select FailureRate.FailureDate, ROUND(((FailureRate.NumFailure::decimal / SuccessRate.NumSuccess::decimal) * 100), 1)
+    select FailureRate.FailureDate,
+    ROUND(((FailureRate.NumFailure::decimal / TotalAccess.TotalCount::decimal) * 100), 2)
     from (
-        select to_char(time, 'MM-DD-YYYY') as SuccessDate, status, count(status) as NumSuccess
+        select time::date as Date, count(status) as TotalCount
         from log
-        where status = '200 OK' 
-        group by SuccessDate, status
-    ) as SuccessRate join (
-        select to_char(time, 'MM-DD-YYYY') as FailureDate, status, count(status) as NumFailure
+        group by Date
+    ) as TotalAccess join (
+        select time::date as FailureDate, status, count(status) as NumFailure
         from log
-        where status = '404 NOT FOUND' 
+        where status = '404 NOT FOUND'
         group by FailureDate, status
-    ) as FailureRate on SuccessRate.SuccessDate = FailureRate.FailureDate
-    where ((FailureRate.NumFailure::decimal / SuccessRate.NumSuccess::decimal) * 100) > 1
-    group by FailureRate.FailureDate, FailureRate.NumFailure, SuccessRate.NumSuccess
+    ) as FailureRate on TotalAccess.Date = FailureRate.FailureDate
+    where ((FailureRate.NumFailure::decimal / TotalAccess.TotalCount::decimal) * 100) > 1
+    group by FailureRate.FailureDate, FailureRate.NumFailure, TotalAccess.TotalCount
     '''
 
 c.execute(error_query)
 error_results = c.fetchall()
+
+print('Here are the days where there were more that 1% errors')
+print('-----------------------------------------------------r')
+print(' ')
 for x in error_results:
     print('{} - {}% errors '.format(x[0], x[1]))
 
