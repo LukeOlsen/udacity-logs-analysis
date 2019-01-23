@@ -8,21 +8,6 @@ DBNAME = "news"
 db = psycopg2.connect(database=DBNAME)
 c = db.cursor()
 
-# Creating view that will be used in the
-# 3 most popular articles and authors queries
-
-create_view = '''create view adjusted_logs as
-    select RIGHT(path, length(path) - 9) as FixPath, count(path) as views
-    from log
-    where path <> '/'
-    group by FixPath
-    order by views desc
-    '''
-
-# Creating the view in the database
-
-c.execute(create_view)
-
 # 3 most popular articles of all time (title, number of views)
 
 top_article_query = '''
